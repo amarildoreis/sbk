@@ -80,7 +80,7 @@ export function Sidebar({
           </button>
         </div>
 
-        <nav className="mt-9 flex flex-1 flex-col gap-1 overflow-y-auto">
+        <nav className="sbk-nav-scroll mt-9 flex flex-1 flex-col gap-1 overflow-y-auto">
           {dashboardNav.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -103,7 +103,7 @@ export function Sidebar({
                   }`}
                 />
                 <span
-                  className={`sbk-nav-label leading-snug ${
+                  className={`sbk-nav-label min-w-0 flex-1 truncate leading-snug ${
                     collapsed ? "lg:hidden" : ""
                   }`}
                 >
