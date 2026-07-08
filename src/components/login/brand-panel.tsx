@@ -26,7 +26,7 @@ export function BrandPanel() {
       <div className="relative flex flex-1 flex-col">
         <div className="animate-fade-in-up">
           <p className="text-xs font-medium tracking-[0.2em] text-cinza-prata">
-            SBKANA . FIAGRO
+            FIDC . SBKANA . FIAGRO . TRIO
           </p>
         </div>
 
