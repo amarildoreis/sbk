@@ -1,16 +1,37 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Image from "next/image";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 
 export function LoginForm() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError(null);
     setIsSubmitting(true);
+
+    const formData = new FormData(event.currentTarget);
+    const result = await signIn("credentials", {
+      email: formData.get("email"),
+      password: formData.get("password"),
+      redirect: false,
+    });
+
+    if (result?.error) {
+      setError("E-mail ou senha inválidos.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    router.push("/dashboard");
+    router.refresh();
   }
 
   return (
@@ -20,9 +41,9 @@ export function LoginForm() {
           <Image
             src="/brand/logomarca-original.jpeg"
             alt="SBK Capital"
-            width={64}
-            height={64}
-            className="h-16 w-16 rounded-2xl"
+            width={96}
+            height={96}
+            className="h-24 w-24 rounded-2xl"
             priority
           />
         </div>
@@ -105,6 +126,12 @@ export function LoginForm() {
               Esqueci minha senha
             </a>
           </div>
+
+          {error && (
+            <p className="rounded-lg bg-vermelho-risco/10 px-3.5 py-2.5 text-sm text-vermelho-risco">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"
