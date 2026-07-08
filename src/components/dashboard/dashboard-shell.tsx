@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
+
+const COLLAPSE_STORAGE_KEY = "sbk-sidebar-collapsed";
 
 function getInitials(label: string) {
   const clean = label.split("@")[0];
@@ -22,16 +24,36 @@ export function DashboardShell({
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(COLLAPSE_STORAGE_KEY);
+    if (stored === "true") setCollapsed(true);
+  }, []);
+
+  function toggleCollapsed() {
+    setCollapsed((prev) => {
+      const next = !prev;
+      window.localStorage.setItem(COLLAPSE_STORAGE_KEY, String(next));
+      return next;
+    });
+  }
 
   return (
     <div className="min-h-screen bg-surface-alt">
       <Sidebar
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
+        collapsed={collapsed}
+        onToggleCollapse={toggleCollapsed}
         userLabel={userLabel}
       />
 
-      <div className="flex min-h-screen flex-col lg:pl-72">
+      <div
+        className={`flex min-h-screen flex-col transition-[padding] duration-300 ease-out ${
+          collapsed ? "lg:pl-20" : "lg:pl-72"
+        }`}
+      >
         <Topbar
           onMenuClick={() => setMobileOpen(true)}
           userLabel={userLabel}

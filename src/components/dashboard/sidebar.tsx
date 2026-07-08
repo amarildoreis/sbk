@@ -3,17 +3,25 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { X } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { dashboardNav } from "@/lib/dashboard-nav";
 import { SignOutButton } from "./sign-out-button";
 
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
   userLabel: string;
 }
 
-export function Sidebar({ open, onClose, userLabel }: SidebarProps) {
+export function Sidebar({
+  open,
+  onClose,
+  collapsed,
+  onToggleCollapse,
+  userLabel,
+}: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -27,20 +35,39 @@ export function Sidebar({ open, onClose, userLabel }: SidebarProps) {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-azul-escuro px-5 py-6 transition-transform duration-300 ease-out lg:translate-x-0 ${
+        className={`sbk-sidebar-glow-edge fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-azul-escuro px-5 py-6 transition-all duration-300 ease-out lg:translate-x-0 lg:animate-fade-in-left ${
           open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } ${collapsed ? "lg:w-20 lg:px-3" : ""}`}
       >
-        <div className="flex items-center justify-between px-1">
+        <button
+          onClick={onToggleCollapse}
+          aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
+          className="absolute -right-3 top-8 hidden h-6 w-6 items-center justify-center rounded-full border border-cinza-prata/60 bg-white text-azul-escuro shadow-premium-sm transition hover:bg-surface-alt lg:flex"
+        >
+          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+        </button>
+
+        <div
+          className={`flex items-center justify-between px-1 ${
+            collapsed ? "lg:justify-center" : ""
+          }`}
+        >
           <div className="flex items-center gap-3">
-            <Image
-              src="/brand/sbk-icon.png"
-              alt="SBK Capital"
-              width={36}
-              height={36}
-              className="h-9 w-9 rounded-xl"
-            />
-            <span className="text-[15px] font-semibold text-white">
+            <div className="relative shrink-0">
+              <span className="sbk-brand-glow animate-brand-pulse" aria-hidden />
+              <Image
+                src="/brand/sbk-icon.png"
+                alt="SBK Capital"
+                width={36}
+                height={36}
+                className="relative h-9 w-9 rounded-xl"
+              />
+            </div>
+            <span
+              className={`text-[15px] font-semibold text-white ${
+                collapsed ? "lg:hidden" : ""
+              }`}
+            >
               SBK Capital
             </span>
           </div>
@@ -63,35 +90,39 @@ export function Sidebar({ open, onClose, userLabel }: SidebarProps) {
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
-                className={`group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
-                  isActive
-                    ? "bg-white/10 text-white"
-                    : "text-cinza-prata hover:bg-white/5 hover:text-white"
-                }`}
+                title={item.label}
+                className={`sbk-nav-item flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-cinza-prata ${
+                  collapsed ? "lg:justify-center lg:px-0" : ""
+                } ${isActive ? "is-active" : ""}`}
               >
-                {isActive && (
-                  <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full bg-verde-claro" />
-                )}
                 <Icon
                   size={18}
                   strokeWidth={1.75}
-                  className={
-                    isActive
-                      ? "shrink-0 text-verde-claro"
-                      : "shrink-0 text-cinza-prata/70 transition group-hover:text-white"
-                  }
+                  className={`sbk-nav-icon shrink-0 ${
+                    isActive ? "text-verde-claro" : "text-cinza-prata/70"
+                  }`}
                 />
-                <span className="leading-snug">{item.label}</span>
+                <span
+                  className={`sbk-nav-label leading-snug ${
+                    collapsed ? "lg:hidden" : ""
+                  }`}
+                >
+                  {item.label}
+                </span>
               </Link>
             );
           })}
         </nav>
 
         <div className="mt-6 space-y-4 border-t border-white/10 pt-5">
-          <p className="truncate px-1 text-xs text-cinza-prata/70">
+          <p
+            className={`truncate px-1 text-xs text-cinza-prata/70 ${
+              collapsed ? "lg:hidden" : ""
+            }`}
+          >
             {userLabel}
           </p>
-          <SignOutButton />
+          <SignOutButton collapsed={collapsed} />
         </div>
       </aside>
     </>

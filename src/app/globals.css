@@ -16,3 +16,138 @@
     background-color: #f7f8fa;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Sidebar nav — interatividade premium (mesmo mecanismo de
+   transição/hover/glow do menu de referência), recolorida para
+   a paleta_sbk_v2 (ver tailwind.config.ts). Valores hex abaixo
+   espelham --color-verde-claro / --color-cinza-prata do config
+   — mantenha os dois em sincronia se a paleta mudar.
+   ═══════════════════════════════════════════════════════════ */
+@layer components {
+  .sbk-sidebar-glow-edge::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(74, 140, 92, 0.7) 40%,
+      rgba(74, 140, 92, 0.9) 60%,
+      transparent
+    );
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .sbk-brand-glow {
+    position: absolute;
+    inset: -6px;
+    border-radius: 16px;
+    background: radial-gradient(
+      circle at 40% 40%,
+      rgba(74, 140, 92, 0.28) 0%,
+      transparent 68%
+    );
+    pointer-events: none;
+  }
+
+  .sbk-nav-item {
+    position: relative;
+    transition:
+      background-color 0.23s cubic-bezier(0.4, 0, 0.2, 1),
+      color 0.23s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.23s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.28s cubic-bezier(0.34, 1.15, 0.64, 1);
+  }
+
+  .sbk-nav-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    bottom: 50%;
+    width: 3px;
+    border-radius: 0 2px 2px 0;
+    background: linear-gradient(180deg, #4a8c5c 0%, #6ba97d 100%);
+    opacity: 0;
+    transition:
+      top 0.28s cubic-bezier(0.34, 1.15, 0.64, 1),
+      bottom 0.28s cubic-bezier(0.34, 1.15, 0.64, 1),
+      opacity 0.2s ease;
+  }
+
+  .sbk-nav-item:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(74, 140, 92, 0.16) 0%,
+      rgba(74, 140, 92, 0.05) 100%
+    );
+    color: #fff;
+    transform: translateX(3px) translateY(-1px);
+    box-shadow:
+      0 8px 24px rgba(74, 140, 92, 0.22),
+      0 2px 10px rgba(74, 140, 92, 0.14);
+  }
+
+  .sbk-nav-item:hover::before {
+    top: 22%;
+    bottom: 22%;
+    opacity: 0.7;
+  }
+
+  .sbk-nav-item.is-active {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    transform: none;
+  }
+
+  .sbk-nav-item.is-active::before {
+    top: 18%;
+    bottom: 18%;
+    opacity: 1;
+  }
+
+  .sbk-nav-icon {
+    transition:
+      color 0.23s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.28s cubic-bezier(0.34, 1.15, 0.64, 1),
+      filter 0.23s ease;
+  }
+
+  .sbk-nav-item:hover .sbk-nav-icon {
+    color: #4a8c5c;
+    transform: scale(1.13);
+    filter: drop-shadow(0 0 5px rgba(74, 140, 92, 0.5));
+  }
+
+  .sbk-nav-item.is-active .sbk-nav-icon {
+    color: #4a8c5c;
+    transform: none;
+    filter: none;
+  }
+
+  .sbk-nav-label {
+    background-image: linear-gradient(
+      90deg,
+      #ffffff 0%,
+      #ffffff 55%,
+      #c8cdd6 75%,
+      #c8cdd6 100%
+    );
+    background-size: 250% 100%;
+    background-position: 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    transition: background-position 0.9s ease-in-out;
+  }
+
+  .sbk-nav-item:hover .sbk-nav-label,
+  .sbk-nav-item.is-active .sbk-nav-label {
+    background-position: 0%;
+  }
+}
