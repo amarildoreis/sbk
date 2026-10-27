@@ -1,0 +1,85 @@
+// Banco MySQL próprio da plataforma (não é o SQL Server da WBA — aqui temos
+// leitura e escrita normalmente, é dado gerado dentro do nosso ambiente).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id              String   @id @default(cuid())
+  nome            String
+  /// Sem @unique: e-mail só precisa ser único entre usuários ATIVOS
+  /// (deletedAt null) — validado na aplicação, não no banco, para permitir
+  /// recadastrar o mesmo e-mail após exclusão lógica.
+  email           String
+  perfil          String
+  status          String
+  vinculo         String?
+  comercialTipo   String?
+  comercialCodigo String?
+  /// Foto em base64 (data URI). Ver decisão em CLAUDE.md / conversa do time.
+  fotoBase64      String?  @db.LongText
+  /// Mapa { chaveDaPermissao: boolean }
+  permissoes      Json
+
+  /// Hash bcrypt — nunca armazenar em texto puro.
+  senhaHash           String
+  /// Força troca de senha no próximo login (sempre true ao criar).
+  mustChangePassword  Boolean   @default(true)
+  welcomeEmailSentAt  DateTime?
+
+  /// Exclusão lógica — feita manualmente direto no banco pelo time (ver
+  /// conversa do projeto). A aplicação só respeita este campo em leituras;
+  /// nunca escreve nele.
+  deletedAt DateTime?
+  deletedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@map("usuarios")
+}
+
+/// Faixas de TAXA_COMISSAO sobre JUROS_MENSAL (CLAUDE.md 19.6) — valem para
+/// todos os comerciais Internos. CRUD completo (delete físico, sem
+/// exclusão lógica — diferente de Usuario).
+model FaixaComissao {
+  id       String @id @default(cuid())
+  jurosMin Float
+  /// null = sem limite superior (última faixa).
+  jurosMax Float?
+  taxa     Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("faixas_comissao")
+}
+
+/// Conversas salvas do módulo de Interação por IA (CLAUDE.md seção 12) —
+/// máximo 20 por usuário, aplicado na aplicação (não no banco). Escopada por
+/// `usuarioEmail`, não por FK pra Usuario — a conta administrativa via
+/// variável de ambiente (ADMIN_EMAIL) não tem linha na tabela `usuarios`,
+/// então o e-mail da sessão é o único identificador estável comum aos dois
+/// casos (mesmo padrão de "quem é o usuário logado" usado no restante do
+/// módulo de IA, via NextAuth session).
+model ConversaIA {
+  id           String   @id @default(cuid())
+  usuarioEmail String
+  titulo       String
+  /// Array de mensagens (pergunta do usuário + resposta da IA), serializado
+  /// exatamente como a tela de chat consome — sem transformação no backend.
+  mensagens    Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([usuarioEmail])
+  @@map("conversas_ia")
+}

@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
+import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 
 export function LoginForm() {
@@ -25,7 +26,14 @@ export function LoginForm() {
     });
 
     if (result?.error) {
-      setError("E-mail ou senha inválidos.");
+      // "CredentialsSignin" é o erro genérico do NextAuth quando `authorize`
+      // retorna null (credencial inválida). Qualquer outra mensagem vem de
+      // um `throw` explícito em src/lib/auth.ts (ex: usuário inativo).
+      setError(
+        result.error === "CredentialsSignin"
+          ? "E-mail ou senha inválidos."
+          : result.error,
+      );
       setIsSubmitting(false);
       return;
     }
@@ -119,12 +127,12 @@ export function LoginForm() {
           </div>
 
           <div className="flex justify-end">
-            <a
-              href="#"
+            <Link
+              href="/esqueci-senha"
               className="text-sm font-medium text-azul-medio transition hover:text-azul-escuro hover:underline underline-offset-4"
             >
               Esqueci minha senha
-            </a>
+            </Link>
           </div>
 
           {error && (

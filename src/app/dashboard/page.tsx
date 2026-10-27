@@ -1,6 +1,14 @@
-import { Compass } from "lucide-react";
-import { EmptyState } from "@/components/dashboard/empty-state";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { hasPermission } from "@/lib/auth/permissions";
+import { AccessDenied } from "@/components/dashboard/access-denied";
+import { VisaoGeralCards } from "@/components/dashboard/comercial/visao-geral-cards";
 
-export default function VisaoGeralPage() {
-  return <EmptyState icon={Compass} title="Comercial - Visão Geral" />;
+export default async function VisaoGeralPage() {
+  const session = await getServerSession(authOptions);
+  if (!hasPermission(session, "ver_comercial")) {
+    return <AccessDenied message="Você não tem permissão para ver o módulo Comercial." />;
+  }
+
+  return <VisaoGeralCards />;
 }

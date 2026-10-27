@@ -1,0 +1,136 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import Link from "next/link";
+import { Mail, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
+
+export function EsqueciSenhaForm() {
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch("/api/auth/esqueci-senha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(data.error ?? "Não foi possível processar seu pedido.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      setSent(true);
+    } catch {
+      setError("Não foi possível processar seu pedido agora. Tente novamente.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col justify-center px-8 py-12 sm:px-12 lg:px-16">
+      <div className="mx-auto w-full max-w-sm animate-fade-in-up">
+        {sent ? (
+          <div className="text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-verde-escuro/10 text-verde-escuro">
+              <CheckCircle2 size={28} strokeWidth={1.75} />
+            </div>
+            <h1 className="mt-5 text-2xl font-bold text-azul-escuro sm:text-[28px]">
+              Verifique seu e-mail
+            </h1>
+            <p className="mx-auto mt-2.5 max-w-xs text-sm leading-relaxed text-azul-escuro/55">
+              Se <strong className="text-azul-escuro">{email}</strong> estiver
+              cadastrado e ativo, enviamos uma nova senha temporária. Você vai
+              precisar trocá-la no próximo acesso.
+            </p>
+            <Link
+              href="/login"
+              className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-azul-medio transition hover:text-azul-escuro"
+            >
+              <ArrowLeft size={15} strokeWidth={2} />
+              Voltar para o login
+            </Link>
+          </div>
+        ) : (
+          <>
+            <p className="text-sm font-medium tracking-wide text-azul-medio">
+              Recuperar acesso
+            </p>
+            <h1 className="mt-1.5 text-2xl font-bold text-azul-escuro sm:text-[28px]">
+              Esqueci minha senha
+            </h1>
+            <p className="mt-2 text-sm text-azul-escuro/50">
+              Informe seu e-mail corporativo. Se estiver cadastrado, enviamos
+              uma nova senha temporária.
+            </p>
+
+            <form onSubmit={handleSubmit} className="mt-9 space-y-5">
+              <div>
+                <label
+                  htmlFor="email"
+                  className="mb-2 block text-sm font-medium text-azul-escuro/80"
+                >
+                  E-mail corporativo
+                </label>
+                <div className="relative">
+                  <Mail
+                    size={18}
+                    strokeWidth={1.75}
+                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-azul-escuro/35"
+                  />
+                  <input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="nome@empresa.com.br"
+                    className="w-full rounded-xl border border-cinza-prata/70 bg-white py-3 pl-11 pr-4 text-sm text-azul-escuro placeholder:text-azul-escuro/35 outline-none transition focus:border-azul-medio focus:ring-4 focus:ring-azul-medio/10"
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <p className="rounded-lg bg-vermelho-risco/10 px-3.5 py-2.5 text-sm text-vermelho-risco">
+                  {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-azul-escuro py-3.5 text-sm font-semibold text-white shadow-premium-sm transition hover:bg-azul-medio active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isSubmitting ? "Enviando..." : "Enviar nova senha"}
+                <ArrowRight
+                  size={16}
+                  strokeWidth={2}
+                  className="transition-transform group-hover:translate-x-0.5"
+                />
+              </button>
+
+              <Link
+                href="/login"
+                className="flex items-center justify-center gap-2 text-sm font-medium text-azul-medio transition hover:text-azul-escuro"
+              >
+                <ArrowLeft size={15} strokeWidth={2} />
+                Voltar para o login
+              </Link>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

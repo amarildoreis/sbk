@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
+import { RefreshProvider } from "./refresh-context";
+import { NavigationGuardProvider } from "./navigation-guard-context";
 
 const COLLAPSE_STORAGE_KEY = "sbk-sidebar-collapsed";
 
@@ -18,9 +20,11 @@ function getInitials(label: string) {
 
 export function DashboardShell({
   userLabel,
+  permissoes,
   children,
 }: {
   userLabel: string;
+  permissoes: Record<string, boolean>;
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -40,27 +44,36 @@ export function DashboardShell({
   }
 
   return (
-    <div className="min-h-screen bg-surface-alt">
-      <Sidebar
-        open={mobileOpen}
-        onClose={() => setMobileOpen(false)}
-        collapsed={collapsed}
-        onToggleCollapse={toggleCollapsed}
-        userLabel={userLabel}
-      />
-
-      <div
-        className={`flex min-h-screen flex-col transition-[padding] duration-300 ease-out ${
-          collapsed ? "lg:pl-20" : "lg:pl-72"
-        }`}
-      >
+    <NavigationGuardProvider>
+    <RefreshProvider>
+      <div className="min-h-screen bg-surface-alt">
         <Topbar
           onMenuClick={() => setMobileOpen(true)}
           userLabel={userLabel}
           initials={getInitials(userLabel)}
+          collapsed={collapsed}
         />
-        <main className="flex-1 px-5 py-8 lg:px-8">{children}</main>
+
+        <div className="flex">
+          <Sidebar
+            open={mobileOpen}
+            onClose={() => setMobileOpen(false)}
+            collapsed={collapsed}
+            onToggleCollapse={toggleCollapsed}
+            userLabel={userLabel}
+            permissoes={permissoes}
+          />
+
+          <div
+            className={`flex min-h-[calc(100vh-5rem)] flex-1 flex-col transition-[padding] duration-300 ease-out ${
+              collapsed ? "lg:pl-20" : "lg:pl-72"
+            }`}
+          >
+            <main className="flex-1 px-5 py-8 lg:px-8">{children}</main>
+          </div>
+        </div>
       </div>
-    </div>
+    </RefreshProvider>
+    </NavigationGuardProvider>
   );
 }

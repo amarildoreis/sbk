@@ -1,0 +1,32 @@
+import { NextResponse } from "next/server";
+import { resolveComercialParam } from "@/lib/auth/access-scope";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { hasPermission } from "@/lib/auth/permissions";
+import { getVencidoCedente } from "@/lib/db/queries/vencido-cedente";
+
+export async function GET(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!hasPermission(session, "ver_comercial")) {
+    return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const comercial = resolveComercialParam(searchParams.get("comercial") ?? "", session);
+  const forceRefresh = searchParams.get("refresh") === "1";
+
+  try {
+    const value = await getVencidoCedente(comercial, forceRefresh);
+    return NextResponse.json({ value });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("[api/comercial/vencido-cedente] falha na consulta", {
+      timestamp: new Date().toISOString(),
+      message: (error as Error).message,
+    });
+    return NextResponse.json(
+      { error: "Não foi possível carregar o indicador no momento." },
+      { status: 503 },
+    );
+  }
+}

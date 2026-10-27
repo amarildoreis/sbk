@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getSessionPermissoes } from "@/lib/auth/permissions";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 
 export default async function DashboardLayout({
@@ -15,6 +16,11 @@ export default async function DashboardLayout({
   }
 
   const userLabel = session.user?.name ?? session.user?.email ?? "Usuário";
+  const permissoes = getSessionPermissoes(session);
 
-  return <DashboardShell userLabel={userLabel}>{children}</DashboardShell>;
+  return (
+    <DashboardShell userLabel={userLabel} permissoes={permissoes}>
+      {children}
+    </DashboardShell>
+  );
 }

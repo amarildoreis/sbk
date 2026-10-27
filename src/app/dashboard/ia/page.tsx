@@ -1,6 +1,5 @@
-import { Sparkles } from "lucide-react";
-import { EmptyState } from "@/components/dashboard/empty-state";
+import { IaWorkspace } from "@/components/dashboard/ia/ia-workspace";
 
 export default function InteracaoIAPage() {
-  return <EmptyState icon={Sparkles} title="Interação por IA" />;
+  return <IaWorkspace />;
 }

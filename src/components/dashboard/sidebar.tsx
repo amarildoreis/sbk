@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { dashboardNav } from "@/lib/dashboard-nav";
-import { SignOutButton } from "./sign-out-button";
+import { dashboardNav, findActiveNavItem } from "@/lib/dashboard-nav";
+import { useGuardedNavigate } from "./navigation-guard-context";
 
 interface SidebarProps {
   open: boolean;
@@ -13,6 +12,7 @@ interface SidebarProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
   userLabel: string;
+  permissoes: Record<string, boolean>;
 }
 
 export function Sidebar({
@@ -21,8 +21,14 @@ export function Sidebar({
   collapsed,
   onToggleCollapse,
   userLabel,
+  permissoes,
 }: SidebarProps) {
   const pathname = usePathname();
+  const guardedNavigate = useGuardedNavigate();
+  const activeHref = findActiveNavItem(pathname)?.href;
+  const visibleNav = dashboardNav.filter(
+    (item) => !item.permissionKey || permissoes[item.permissionKey],
+  );
 
   return (
     <>
@@ -35,7 +41,7 @@ export function Sidebar({
       )}
 
       <aside
-        className={`sbk-sidebar-glow-edge fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-azul-escuro px-5 py-6 transition-all duration-300 ease-out lg:translate-x-0 lg:animate-fade-in-left ${
+        className={`sbk-sidebar-glow-edge fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-azul-escuro px-5 py-6 transition-all duration-300 ease-out lg:top-20 lg:translate-x-0 lg:animate-fade-in-left ${
           open ? "translate-x-0" : "-translate-x-full"
         } ${collapsed ? "lg:w-20 lg:px-3" : ""}`}
       >
@@ -47,49 +53,31 @@ export function Sidebar({
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
 
-        <div
-          className={`flex items-center justify-between px-1 ${
-            collapsed ? "lg:justify-center" : ""
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="relative shrink-0">
-              <span className="sbk-brand-glow animate-brand-pulse" aria-hidden />
-              <Image
-                src="/brand/sbk-icon.png"
-                alt="SBK Capital"
-                width={36}
-                height={36}
-                className="relative h-9 w-9 rounded-xl"
-              />
-            </div>
-            <span
-              className={`text-[15px] font-semibold text-white ${
-                collapsed ? "lg:hidden" : ""
-              }`}
-            >
-              SBK Capital
-            </span>
-          </div>
+        <div className="flex items-center justify-end px-1 lg:hidden">
           <button
             onClick={onClose}
             aria-label="Fechar menu"
-            className="rounded-lg p-1.5 text-cinza-prata transition hover:bg-white/5 lg:hidden"
+            className="rounded-lg p-1.5 text-cinza-prata transition hover:bg-white/5"
           >
             <X size={18} />
           </button>
         </div>
 
-        <nav className="sbk-nav-scroll mt-9 flex flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto">
-          {dashboardNav.map((item) => {
-            const isActive = pathname === item.href;
+        <nav className="sbk-nav-scroll mt-2 flex flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto lg:mt-8">
+          {visibleNav.map((item) => {
+            const isActive = item.href === activeHref;
             const Icon = item.icon;
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={onClose}
+                onClick={(e) => {
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                  e.preventDefault();
+                  onClose();
+                  guardedNavigate(item.href);
+                }}
                 title={item.label}
                 className={`sbk-nav-item flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-cinza-prata ${
                   collapsed ? "lg:justify-center lg:px-0" : ""
@@ -114,7 +102,7 @@ export function Sidebar({
           })}
         </nav>
 
-        <div className="mt-6 space-y-4 border-t border-white/10 pt-5">
+        <div className="mt-6 border-t border-white/10 pt-5">
           <p
             className={`truncate px-1 text-xs text-cinza-prata/70 ${
               collapsed ? "lg:hidden" : ""
@@ -122,7 +110,6 @@ export function Sidebar({
           >
             {userLabel}
           </p>
-          <SignOutButton collapsed={collapsed} />
         </div>
       </aside>
     </>
